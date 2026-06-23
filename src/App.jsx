@@ -1,31 +1,36 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
+import TodoForm from "./components/TodoForm"
+import TodoList from "./components/TodoList"
+import toast from "react-hot-toast"
 
 const App = ()=>{
-  const [val,setVal] = useState("")
-  const [todo,setTodo] = useState([])
+ 
+  const [todo,setTodo] = useState(()=>{
+    const savedTodos = localStorage.getItem("todos")
+    return savedTodos ? JSON.parse(savedTodos) : []
+  })
 
-  function add(){
+  function add(val){
     setTodo([...todo,{title:val,id:Date.now()}])
-    setVal("")
+    toast.success("Todo added successfully...")
   }
 
+  function delTodo(id){
+    setTodo(todo.filter((todo)=>todo.id !== id))
+    toast.success("Todo deleted successfully...")
+  }
+
+  useEffect(()=>{
+    localStorage.setItem("todos",JSON.stringify(todo))
+  },[todo])
 
 
   return (
     <div className="flex items-center flex-col mt-8">
       <h1 className="text-3xl text-red-500 font-bold italic mb-4">Todo App</h1>
-      <div>
-        <input value={val} type="text" placeholder="Enter a task" className="border border-black px-4 py-2 rounded-lg me-4" onChange={(e)=> setVal(e.target.value)}/>
-        <button className="text-xl bg-green-400 hover:bg-green-600 text-white px-4 py-1 rounded-xl" onClick={add}>Add</button>
-      </div>
-
-      <div className="mt-4">
-        {
-          todo.map((item)=>(
-            <div key={item.id} className="bg-gray-300 hover:bg-gray-500 hover:text-white mb-4 w-[50vw] text-center p-1 flex justify-between p-2" >{item.title} <button className="ml-6 bg-red-300 hover:text-white hover:bg-red-600 px-2 rounded">Del</button></div>
-          ))
-        }
-      </div>
+      <TodoForm add={add}/>
+      <TodoList todo={todo} delTodo={delTodo}/>
+      
     </div>
   )
 }
